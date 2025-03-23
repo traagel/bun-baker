@@ -1,0 +1,94 @@
+import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
+import { config } from '@/config';
+import { registerPlugins } from '@/plugins';
+import { registerRoutes } from '@/routes';
+import { errorHandler } from '@/utils/errorHandler';
+import { sanitizeRequestBody } from '@/utils/sanitizer';
+import { createRemoteJWKSet, jwtVerify } from 'jose';
+
+export const buildApp = async (): Promise<FastifyInstance> => {
+  const app = fastify({
+    logger: config.logger,
+  }).withTypeProvider<TypeBoxTypeProvider>();
+  const jwks = createRemoteJWKSet(new URL(config.jwt.jwksUri));
+  
+  try {
+    // 1) Register any base plugins (CORS, Swagger, etc.)
+    await registerPlugins(app);
+
+    // 2) Log incoming requests
+    app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) => {
+      app.log.debug(`Incoming Request: ${request.method} ${request.url}`);
+    });
+
+    // 3) Sanitize all incoming requests
+    app.addHook('preHandler', (request, reply, done) => {
+      sanitizeRequestBody(request);
+      done();
+    });
+
+    // 4) Set a global error handler
+    app.setErrorHandler(errorHandler);
+
+    // 5) Decorate 'authenticate' using JWT + JWKS
+    if (process.env.DISABLE_AUTH === 'true') {
+      app.decorate('authenticate', async (request: FastifyRequest, reply: FastifyReply) => {
+        // Provide a fake user object
+        request.user = { id: 'test-user-id' };
+        // No real verification
+      });
+      app.log.warn('Authentication is DISABLED (setting fake sub)!');
+    } else {
+      app.decorate('authenticate', async (request: FastifyRequest, reply: FastifyReply) => {
+        try {
+          const authHeader = request.headers.authorization;
+          if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return reply.code(401).send({ error: 'Missing or invalid Authorization header' });
+          }
+
+          const token = authHeader.slice(7); // Remove 'Bearer ' prefix
+
+          // Use jose to verify JWT
+          const { payload } = await jwtVerify(token, jwks, {
+            algorithms: ['RS256'],
+            issuer: config.jwt.issuer,
+            audience: config.jwt.audience,
+          });
+
+          request.user = payload; // Attach decoded payload to request
+        } catch (err) {
+          app.log.error('JWT Verification Failed:', err);
+          return reply.code(401).send({ error: 'Authentication failed' });
+        }
+      });
+    }
+
+    // 6) Register routes
+    await registerRoutes(app);
+
+    app.log.info('All plugins and routes registered');
+  } catch (err) {
+    app.log.error('Error during app initialization:', err);
+    throw err;
+  }
+
+  return app;
+};
+
+// Script entrypoint
+export const startServer = async () => {
+  try {
+    const app = await buildApp();
+    await app.listen({ port: config.port, host: '0.0.0.0' });
+    console.log(`Server is running on http://localhost:${config.port}`);
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
+};
+
+// Start server if run directly
+if (require.main === module) {
+  startServer();
+}; 

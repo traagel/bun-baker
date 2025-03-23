@@ -1,0 +1,38 @@
+import dotenv from 'dotenv';
+import pgPromise from 'pg-promise';
+
+dotenv.config();
+
+const pgp = pgPromise();
+const db = pgp(process.env.DATABASE_URL || '');
+
+export const config = {
+  port: parseInt(process.env.PORT || '3000', 10),
+  nodeEnv: process.env.NODE_ENV || 'development',
+  logger: {
+    level: process.env.LOG_LEVEL || 'info',
+    // If you want "pretty" logs only in development:
+    transport:
+      process.env.NODE_ENV === 'development'
+        ? {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+            translateTime: 'HH:MM:ss Z',
+            ignore: 'pid,hostname',
+          },
+        }
+        : undefined,
+  },
+  jwt: {
+    jwksUri: process.env.JWT_JWKS_URI || 'https://auth-service/.well-known/jwks.json',
+    issuer: process.env.JWT_ISSUER || 'auth-service',
+    audience: process.env.JWT_AUDIENCE || 'https://api.{{ service_name }}.com',
+    algorithms: ['RS256'],
+  },
+  database: {
+    url: process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/{{ service_name }}_db',
+  }
+};
+
+export { db, pgp }; 

@@ -1,0 +1,44 @@
+import { FastifyInstance } from 'fastify';
+import { healthRoutes } from '@/routes/health';
+
+export const registerRoutes = async (app: FastifyInstance) => {
+  try {
+    // Serve the OpenAPI JSON
+    app.get('/openapi.json', {}, async () => app.swagger());
+
+    // Root endpoint for service info
+    app.get(
+      '/',
+      {
+        schema: {
+          tags: ['Service Info'],
+          description: 'Service root endpoint',
+          response: {
+            200: {
+              type: 'object',
+              properties: {
+                service: { type: 'string' },
+                status: { type: 'string' }
+              }
+            }
+          }
+        }
+      },
+      async () => ({ service: "{{ service_name }}", status: "running" })
+    );
+
+    // Register health check routes
+    await app.register(healthRoutes, { prefix: '/health' });
+
+    // Register additional routes here
+    // Examples:
+    // await app.register(usersRoutes, { prefix: '/users' });
+    // await app.register(itemsRoutes, { prefix: '/items' });
+    // await app.register(ordersRoutes, { prefix: '/orders' });
+
+    app.log.info('Routes registered successfully');
+  } catch (err) {
+    app.log.error('Error registering routes:', err);
+    throw err;
+  }
+}; 

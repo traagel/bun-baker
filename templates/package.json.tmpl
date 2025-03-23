@@ -1,0 +1,39 @@
+{
+  "type": "module",
+  "name": "{{ service_name }}-service",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "bun build ./src/app.ts --outdir=./dist --target node",
+    "start": "bun run dist/app.js",
+    "dev": "bun run --watch src/app.ts",
+    "migrate": "bun run src/db/migrate.ts",
+    "migrate:reset": "bun run src/db/migrate.ts reset",
+    "postdeploy": "bun run migrate"
+  },
+  "dependencies": {
+    "@fastify/auth": "latest",
+    "@fastify/cors": "latest",
+    "@fastify/jwt": "latest",
+    "@fastify/rate-limit": "latest",
+    "@fastify/swagger": "^9.4.2",
+    "@fastify/swagger-ui": "^5.2.1",
+    "@fastify/type-provider-typebox": "^5.1.0",
+    "@sinclair/typebox": "latest",
+    "bcrypt": "latest",
+    "dotenv": "latest",
+    "fastify": "latest",
+    "jose": "^5.9.6",
+    "pg-promise": "latest",
+    "pino": "latest",
+    "pino-pretty": "latest",
+    "typescript": "latest"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "latest",
+    "@types/node": "latest"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "bun": ">=0.6.0"
+  }
+} 

@@ -1,0 +1,32 @@
+-- Initial database schema for {{ service_name }} service
+-- Created template migration
+
+-- Enable UUID extension if needed
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Example table for {{ service_name }} service
+CREATE TABLE IF NOT EXISTS {{ service_name }}_items (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create updated_at trigger function
+CREATE OR REPLACE FUNCTION update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Add trigger to the table
+CREATE TRIGGER {{ service_name }}_items_updated_at
+BEFORE UPDATE ON {{ service_name }}_items
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+-- Add indexes for performance
+CREATE INDEX idx_{{ service_name }}_items_name ON {{ service_name }}_items(name); 
