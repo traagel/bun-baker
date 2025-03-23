@@ -1,6 +1,6 @@
 # Microservice Generator
 
-A tool to scaffold new microservices for the Fairytale Realm platform following the established architectural patterns.
+A tool to scaffold new microservices for bun/openapi/jwt following the established architectural patterns.
 
 ## Features
 
