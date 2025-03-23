@@ -2,6 +2,8 @@
 
 A tool to scaffold new microservices for bun/openapi/jwt following the established architectural patterns.
 
+Repository: [https://github.com/traagel/bun-baker](https://github.com/traagel/bun-baker)
+
 ## Features
 
 - Creates a complete TypeScript microservice structure with Fastify
@@ -22,14 +24,14 @@ A tool to scaffold new microservices for bun/openapi/jwt following the establish
 Clone this repository or copy the files to your project:
 
 ```bash
-git clone <repository-url>
-cd <repository-directory>
+git clone https://github.com/traagel/bun-baker
+cd bun-baker
 ```
 
 ## Usage
 
 ```bash
-python generate_microservices/main.py <service-name> [options]
+python main.py <service-name> [options]
 ```
 
 ### Arguments
@@ -46,13 +48,13 @@ python generate_microservices/main.py <service-name> [options]
 
 ```bash
 # Generate a users service in the current directory
-python generate_microservices/main.py users
+python main.py users
 
 # Generate a payments service in a specific directory with verbose output
-python generate_microservices/main.py payments -o ./services -v
+python main.py payments -o ./services -v
 
 # Generate a notifications service without Git initialization
-python generate_microservices/main.py notifications --skip-git
+python main.py notifications --skip-git
 ```
 
 ## Directory Structure
@@ -80,7 +82,7 @@ service-name/
 
 ## Customizing Templates
 
-You can customize the generated files by modifying the templates in the `generate_microservices/templates/` directory. All templates use Jinja2 syntax with variables like `{{ service_name }}`.
+You can customize the generated files by modifying the templates in the `templates/` directory. All templates use Jinja2 syntax with variables like `{{ service_name }}`.
 
 Available variables:
 - `service_name`: The provided service name
@@ -89,4 +91,4 @@ Available variables:
 
 ## License
 
-MIT 
+MIT
